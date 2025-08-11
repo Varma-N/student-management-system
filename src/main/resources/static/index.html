@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Student Management</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    input, button { padding: 8px; margin: 5px; }
+    table { margin-top: 20px; width: 100%; border-collapse: collapse; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+    th { background-color: #f4f4f4; }
+  </style>
+</head>
+<body>
+  <h1>🎓 Student Management System</h1>
+
+  <h3>Add New Student</h3>
+  <input type="text" id="name" placeholder="Enter name" />
+  <input type="email" id="email" placeholder="Enter email" />
+  <button onclick="addStudent()">Add Student</button>
+
+  <h3>All Students</h3>
+  <button onclick="loadStudents()">Refresh List</button>
+  <table id="studentsTable">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script>
+    const API_URL = 'http://localhost:8080/api/students';
+
+    async function loadStudents() {
+    	  const res = await fetch(API_URL);
+    	  const students = await res.json();
+    	  const tbody = document.querySelector("#studentsTable tbody");
+    	  tbody.innerHTML = '';
+    	  students.forEach(s => {
+    	    const tr = `
+    	      <tr>
+    	        <td>${s.id}</td>
+    	        <td>${s.name}</td>
+    	        <td>${s.email}</td>
+    	        <td><button onclick="deleteStudent(${s.id})">Delete</button></td>
+    	      </tr>
+    	    `;
+    	    tbody.innerHTML += tr;
+    	  });
+    	}
+
+    async function addStudent() {
+      const name = document.getElementById("name").value;
+      const email = document.getElementById("email").value;
+
+      await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email })
+      });
+
+      document.getElementById("name").value = '';
+      document.getElementById("email").value = '';
+      loadStudents();
+    }
+    
+    async function deleteStudent(id) {
+        if (confirm("Delete student with ID " + id + "?")) {
+          await fetch(`${API_URL}/${id}`, {
+            method: 'DELETE'
+          });
+          loadStudents(); // Refresh the list
+        }
+      }
+    // Load students when page opens
+    loadStudents();
+  </script>
+</body>
+</html>
